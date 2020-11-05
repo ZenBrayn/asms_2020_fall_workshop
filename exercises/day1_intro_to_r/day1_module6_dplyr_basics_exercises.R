@@ -1,12 +1,15 @@
 # ASMS Fall Workshop -- R Fundamentals and Best Practices for Mass Spectrometry Data Analysis
-# Day 1, Module 4: Introduction to dplyr
+# Day 1, Module 6: Basic Data Manipulation with dplyr
 # 
+
+# BE SURE TO LOAD THE TIDYVERSE LIBRARY
+library(tidyverse)
 
 # Exercise #1 -- Reading Data
 # 
 # 1.1 Read the following data file into R and assign it to a variable called dat:
 #     iPRG2015-Skyline/Choi2017_DDA_Skyline_input.csv
-#
+dat <- read_csv("iPRG2015-Skyline/Choi2017_DDA_Skyline_input.csv", guess_max = 10000)
 
 
 # Exercise #2 -- Subsetting rows (filter)
@@ -16,9 +19,9 @@
 #     a dplyr pipeline instead.
 
 
-# 2.2 How many rows and columns did you get, and how does this compare
+# 2.2 How many rows and columns did you get from 2.1, and how does this compare
 #     to the number of rows and columns you got when you subsetted the
-#     data using data frame indexing syntax (refer to the previous exercise).
+#     data using data frame indexing syntax (refer to the previous exercises).
 
 
 # 2.3 Subset the data further to rows for the protein "sp|P33399|LHP1_YEAST"
@@ -49,7 +52,7 @@
 #     (just identify the appropriate dplyr verb, not the code to do the task):
 #     - remove rows that contain DECOY proteins
 #     - only show the columns ProteinName and PeptideSequence
-#     - only keep proteins that have at least 10 identified peptide sequences
+#     - only keep proteins that have at least 10 unique peptide sequences
 #     - order the data based on PrecursorMz
 
 

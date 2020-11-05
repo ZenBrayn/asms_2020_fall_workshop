@@ -1,5 +1,5 @@
 # ASMS Fall Workshop -- R Fundamentals and Best Practices for Mass Spectrometry Data Analysis
-# Day 1, Module 2: First Steps with R
+# Day 1, Module 2: First Steps with R Coding
 # 
 
 # Exercise #1 -- Working with Variables
@@ -19,7 +19,7 @@
 # Continuing from Exercise #1...
 #
 # 2.1 Imagine you conducted additional experiments, one with a 15 minute
-#     gradient and one with a 60 min gradient.  Create a vector to hold
+#     gradient and one with a 30 min gradient.  Create a vector to hold
 #     all three gradient times in minutes, and assign it to a new variable.
 
 
@@ -53,7 +53,7 @@ prec_mz <- c(968.4759, 812.1599, 887.9829, 338.5294, 510.2720,
 # 4.3 Consider a new vector of data that contains the charge states of
 #     the same detected features from above:
 prec_z <- c(2, 4, 2, 3, 2, 2, 2, 2, 2, 2)
-#     Write a conditional expression to find the detected features
+#     Write a conditional expression to find which detected features
 #     that have a charge state of 2.
 
 

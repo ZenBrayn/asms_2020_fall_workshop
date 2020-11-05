@@ -1,13 +1,16 @@
 # ASMS Fall Workshop -- R Fundamentals and Best Practices for Mass Spectrometry Data Analysis
-# Day 1, Module 3: First Steps with R
+# Day 1, Module 4: Working with Data Frames (tibbles)
 #
+
+# BE SURE TO LOAD THE TIDYVERSE LIBRARY
+library(tidyverse)
 
 # Exercise #1 -- Reading Data
 # 
 # 1.1 Example data from a proteomics experiment is located at the folllowing path:
 #     iPRG2015-Skyline/Choi2017_DDA_Skyline_input.csv
 #     What kind of file is this?  Read this data frame into a variable.
-
+dat <- read_csv("iPRG2015-Skyline/Choi2017_DDA_Skyline_input.csv", guess_max = 10000)
 
 # Exercise #2 -- Reviewing Data Frames
 #
