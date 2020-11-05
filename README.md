@@ -25,12 +25,12 @@ The main topics covered include:
 
 *All Times Eastern Standard Time (EST)*
 
-| | Date | Time | Main Topic | 
-| | | |
+| Day | Date | Time | Main Topic | 
+| --- | --- | --- | --- |
 | Day 1 | Saturday, November 7 | 12:00 PM – 3:15 PM | Introduction to R |
 | Day 2 | Sunday, November 8 | 12:00 PM – 3:15 PM | Data Visualization with ggplot2 |
 | Day 3 | Saturday, November 14 | 12:00 PM – 3:15 PM | Intro Statistics & Reproducible Analysis |
-| Day 4 | Saturday, November 14 | 12:00 PM – 3:15 PM | Mass Spec R Packages & Analysis |
+| Day 4 | Sunday, November 15 | 12:00 PM – 3:15 PM | Mass Spec R Packages & Analysis |
 
 
 ## Pre-course Preparation
