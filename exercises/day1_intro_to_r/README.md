@@ -3,9 +3,14 @@
 
 Before you can start working on the exercises, you need to make sure that:
 
-1. R is installed
-2. RStudio is installed
+1. R is installed ([https://cloud.r-project.org](https://cloud.r-project.org))
+2. RStudio is installed ([https://rstudio.com/products/rstudio/download/](https://rstudio.com/products/rstudio/download/))
 3. The `tidyverse` R package is installed
+    1. Launch RStudio
+    2. In the application menu, choose: *Tools -> Install Packages...*
+    3. In the *Packages* field, enter: `tidyverse`
+    4. Click the *Install* button.
+    5. Note: this could take a few minutes
 
 ## 
 
