@@ -84,8 +84,7 @@ The iPRG data is a spiked-in exeriment where 6 proteins were spiked at different
 First, we read in the raw data and annotations.
 
 ```{r}
-mydir <- "~/Documents/Northeastern/Courses/Short-courses/ASMS-R-Workshop-2020"
-skydir <- file.path(file.path(mydir, "data/iPRG2015-Skyline"))
+skydir <- "iPRG2015-Skyline"
 
 raw <- read_csv(file.path(skydir, "Choi2017_DDA_Skyline_input.csv"), na="#N/A")
 ann <- read_csv(file.path(skydir, "Choi2017_DDA_Skyline_annotation.csv"))
