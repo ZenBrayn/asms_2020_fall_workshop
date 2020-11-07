@@ -1,0 +1,504 @@
+---
+title: "Data Viz: Grammar of Graphics with ggplot2"
+author: "Kylie Ariel Bemis"
+date: "11/8/2020"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Why we look at data
+
+Here's a dinosaur dataset:
+
+```{r setup-2, message=FALSE}
+library(tidyverse)
+library(datasauRus)
+
+filter(datasaurus_dozen, dataset == "dino")
+```
+
+If we visualize it, it looks like a T-rex:
+
+```{r dino-plot, echo=FALSE}
+datasaurus_dozen %>%
+  filter(dataset == "dino") %>%
+  ggplot(aes(x=x, y=y)) +
+  geom_point() +
+  labs(x="x", y="y") +
+  theme_minimal()
+```
+
+Here's 12 more datasets with identical summary statistics:
+
+```{r dino-dozen-stats, message=FALSE, echo=FALSE}
+datasaurus_dozen %>% 
+  group_by(dataset) %>% 
+  summarize(
+    mean_x    = mean(x),
+    mean_y    = mean(y),
+    std_dev_x = sd(x),
+    std_dev_y = sd(y),
+    corr_x_y  = cor(x, y))
+```
+
+Based on the summary statistics, we may believe they're similar to each other.
+
+But plotting them reveals quite a difference!
+
+```{r dino-dozen-plots, echo=FALSE}
+datasaurus_dozen %>%
+  filter(dataset != "dino") %>%
+  ggplot(aes(x=x, y=y, colour=dataset)) +
+  geom_point() +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  facet_wrap(~dataset, ncol=3)
+```
+
+Looking at data is important!
+
+- Summary statistics don’t tell whole story
+
+- We can easily find patterns visually
+
+- Identify potential outliers
+
+- Verify model assumptions
+
+- Intuitively display statistical results
+
+# Example data: iPRG
+
+To practice visualization in R, we will use the following iPRG dataset.
+
+The iPRG data is a spiked-in exeriment where 6 proteins were spiked at different ratios in a Yeast proteome background. Each run was repeated three times in a randomized order. The goal is to identify the differentially abundant spiked-in proteins.
+
+>Choi M, et al. ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC-MS/MS Experiments. J Proteome Res. 2017 Feb 3;16(2):945-957. doi: 10.1021/acs.jproteome.6b00881 Epub 2017 Jan 3. PMID: 27990823.
+
+First, we read in the raw data and annotations.
+
+```{r}
+mydir <- "~/Documents/Northeastern/Courses/Short-courses/ASMS-R-Workshop-2020"
+skydir <- file.path(file.path(mydir, "data/iPRG2015-Skyline"))
+
+raw <- read_csv(file.path(skydir, "Choi2017_DDA_Skyline_input.csv"), na="#N/A")
+ann <- read_csv(file.path(skydir, "Choi2017_DDA_Skyline_annotation.csv"))
+```
+
+Then, we use MSstats to process the raw data.
+
+```{r eval=FALSE}
+library(MSstats)
+
+quant <- SkylinetoMSstatsFormat(raw, annotation = ann,
+                                removeProtein_with1Feature = TRUE)
+quant <- as_tibble(quant)
+quant
+
+processed.quant <- dataProcess(quant,
+                               normalization="equalizeMedians",
+                               summaryMethod="TMP",
+                               cutoffCensored="minFeature",
+                               censoredInt="0",
+                               MBimpute=TRUE,
+                               maxQuantileforCensored=0.999)
+
+saveRDS(processed.quant, file="processed-iprg.rds")
+```
+
+Having used `saveRDS()` to save the data to "processed-iprg.rds", we can now load the processed data any time we want with `readRDS()`.
+
+We do exactly that below, and then extract the run-level data.
+
+```{r}
+processed.quant <- readRDS("processed-iprg.rds")
+
+iprg <- as_tibble(processed.quant$RunlevelData)
+
+iprg
+```
+
+We further simplify the dataset to include only relevant columns.
+
+```{r}
+iprg <- transmute(iprg,
+                  Protein,
+                  Run=originalRUN,
+                  Log2Intensity=LogIntensities,
+                  Intensity=2^LogIntensities,
+                  Condition=GROUP_ORIGINAL,
+                  Subject=SUBJECT_ORIGINAL,
+                  TechRep=stringr::str_sub(originalRUN, -5, -5))
+iprg
+```
+
+The resulting data frame has 36,321 rows and 5 columns.
+
+# Basics of ggplot2
+
+## Grammar of graphics
+
+The `ggplot2` package implements a *grammar of graphics*.
+
+The idea is that we can build up a plot from its graphical components.
+
+## Components of a plot
+
+The components of the grammar of graphics include:
+
+- A default *tidy* __dataset__ and set of __mappings__ from variables to __aesthetics__
+
+- One or more layers, each having:
+
+    - (Optional) A new dataset
+    
+    - (Optional) A new set of aesthetic mappings
+
+    - A __geometric object__
+    
+    - A statistical transformation
+    
+    - A position adjustment
+
+- A __scale__ for each mapped aesthetic
+
+- A __coordinate system__
+
+- A __facet__ specification, i.e., subplots based on subsets of the data
+
+## Building a basic plot
+
+Suppose we want to visualize the distribution of log-intensities for each run.
+
+We could do this using side-by-side box-and-whisker plots.
+
+### Default dataset
+
+In `ggplot2`, we initiate a plot with a call to the `ggplot()` function.
+
+This sets up the plot's __default dataset__ and a blank canvas.
+
+```{r}
+ggplot(data=iprg)
+```
+
+### Aesthetic mappings
+
+Next, we add __aesthetic mappings__ with the `aes()` function.
+
+Plot aesthetics include visual channels like position (e.g., the x- and y-axis), color, fill, shape, size, linetype, etc.
+
+Let's map the run and log-intensities to the x- and y-axes.
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=Log2Intensity))
+```
+
+### Geoms
+
+Now, we need to add marks, or __geometric objects__, to draw the plot.
+
+We can add `geom_boxplot()` to the plot with the `+` operator.
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=Log2Intensity)) +
+  geom_boxplot()
+```
+
+You can find documentation for all `ggplot2` functions here: https://ggplot2.tidyverse.org/reference/
+
+# Building a more complex plot
+
+## More aesthetic mappings
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=Log2Intensity,
+                   fill=Condition)) +
+  geom_boxplot()
+```
+
+## Inline transformations
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_boxplot()
+```
+
+## Annotations
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_boxplot() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run")
+```
+
+## Themes
+
+### Preset themes
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_boxplot() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal()
+```
+
+### Adjusting individual elements
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_boxplot() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+## Different geoms
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_violin() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+## Adding layers
+
+### Layering geoms
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_point(position="jitter") +
+  geom_boxplot() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+### Setting layer aesthetics
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_jitter(size=0.1, alpha=0.1) +
+  geom_boxplot() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+### Inheriting aesthetic mappings
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=log2(Intensity))) +
+  geom_jitter(aes(color=Condition), size=0.1, alpha=0.1) +
+  geom_boxplot(aes(fill=Condition)) +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+## Faceting
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=TechRep, y=log2(Intensity),
+                   fill=Condition)) +
+  geom_boxplot() +
+  labs(x="Technical Replicate", y="Log2 Intensity",
+       title="Distribution of log2-intensity by Tech Rep + Condition") +
+  facet_grid(~Condition)
+```
+
+# Recipes for common plots
+
+## Scatter plot
+
+```{r}
+iprg2 <- iprg %>%
+  select(Protein, Run, Intensity) %>%
+  pivot_wider(names_from=Run, values_from=Intensity)
+iprg2
+```
+
+```{r}
+ggplot(iprg2, aes(x=JD_06232014_sample1_B.raw,
+                  y=JD_06232014_sample1_C.raw)) +
+  geom_point(alpha=0.1) +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+## Line plot
+
+```{r}
+set.seed(1)
+msraw <- as_tibble(Cardinal::simulateSpectrum())
+msraw
+```
+
+```{r}
+ggplot(msraw, aes(x=mz, y=intensity)) +
+  geom_line()
+```
+
+## Box plot
+
+```{r}
+ggplot(iprg, aes(x=Run, y=Log2Intensity)) +
+  geom_boxplot() +
+  coord_flip()
+```
+
+## Histogram
+
+```{r}
+ggplot(iprg, aes(x=Log2Intensity)) +
+  geom_histogram() +
+  facet_wrap(~Run)
+```
+
+## Bar plot
+
+```{r}
+ggplot(raw, aes(x=ProductCharge)) +
+  geom_bar()
+```
+
+# Choosing color palettes
+
+## Color brewer
+
+```{r brewer, fig.height=8, fig.width=4}
+RColorBrewer::display.brewer.all()
+```
+
+## Qualitative palettes
+
+```{r}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=Log2Intensity,
+                   fill=Condition)) +
+  geom_boxplot() +
+  labs(x="MS run", y="Log2 Intensity",
+       title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_fill_brewer(palette="Dark2")
+```
+
+## Continuous palettes
+
+```{r}
+volcano2 <- as_tibble(cbind(expand.grid(x=seq_len(nrow(volcano)),
+                                        y=seq_len(ncol(volcano))),
+                            tibble(z=as.vector(volcano))))
+volcano2
+```
+
+### Sequential
+
+```{r}
+ggplot(volcano2, aes(x=x, y=y, fill=z)) +
+  geom_tile() +
+  coord_fixed() +
+  scale_fill_distiller(palette="Blues")
+```
+
+### Diverging
+
+```{r}
+volcano2 %>%
+  mutate(z0=(z - mean(z)) / sd(z)) %>%
+  ggplot(aes(x=x, y=y, fill=z0)) +
+  geom_tile() +
+  coord_fixed() +
+  scale_fill_distiller(palette="PRGn")
+```
+
+# Saving figures
+
+## Iterating a plot
+
+```{r}
+g <- ggplot(data=iprg,
+            mapping=aes(x=Run, y=log2(Intensity)))
+```
+
+```{r}
+g + geom_jitter(aes(color=Condition), size=0.1, alpha=0.1)
+```
+
+```{r}
+g2 <- g + geom_jitter(aes(color=Condition),
+                      size=0.1, alpha=0.1) +
+  geom_boxplot(aes(fill=Condition))
+
+g2
+```
+
+## Exporting a figure
+
+R displays plots on "graphic devices".
+
+The best way to export a graphic from R is to create an external graphics device.
+
+You can create external graphics devices for common file formats:
+
+- `pdf()`
+
+- `png()`
+
+- `tiff()`
+
+- `jpeg()`
+
+Here, we export a figure to a PDF device.
+
+```{r}
+pdf("test-figure.pdf", height=5, width=10)
+g2 + labs(x="MS run", y="Log2 Intensity",
+          title="Distribution of log2-intensity by MS run") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90))
+dev.off()
+```
+
+After plotting the figure, make sure to call `dev.off()` to turn off the device and close the file.
+
+# Session info
+
+```{r session-info}
+sessionInfo()
+```

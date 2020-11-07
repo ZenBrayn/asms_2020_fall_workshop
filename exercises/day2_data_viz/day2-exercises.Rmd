@@ -1,0 +1,151 @@
+---
+title: "Data Viz: Exercises"
+author: "Kylie Ariel Bemis"
+date: "11/8/2020"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Grammar of Graphics with ggplot2
+
+## Exercise A1
+
+Create boxplots of Log2Intensity vs. Subject, using the color of the boxplots to represent TechRep.
+
+```{r eval=FALSE}
+ggplot(data=iprg,
+       mapping=aes(x=Subject, y=Log2Intensity,
+                   fill=TechRep)) +
+  geom_boxplot()
+```
+
+## Exercise A2
+
+Modify your plot from A1 to also facet by TechRep. Encoding the same variable in multiple ways can enhance ease of interpretation.
+
+```{r eval=FALSE}
+ggplot(data=iprg,
+       mapping=aes(x=Subject, y=Log2Intensity,
+                   fill=TechRep)) +
+  geom_boxplot() +
+  facet_wrap(~TechRep)
+```
+
+## Exercise A3
+
+Create boxplots of Intensity vs. Run, using the color of the boxplots to represent Subject. Set the scale of the y-axis to use a logarithmic scale.
+
+```{r eval=FALSE}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=Intensity,
+                   fill=Subject)) +
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+## Exercise A4
+
+Overlay violin plots and a jittered scatter plot of Log2Intensity vs. Run, using the color of the boxplots to represent Subject.
+
+```{r eval=FALSE}
+ggplot(data=iprg,
+       mapping=aes(x=Run, y=Log2Intensity,
+                   fill=Subject)) +
+  geom_jitter(alpha=0.1) +
+  geom_violin()
+```
+
+## Exercise A5
+
+Plot histograms of Log2Intensity, faceted by Subject and TechRep. Use the color of the histograms to indicate Subject.
+
+```{r eval=FALSE}
+ggplot(iprg, aes(x=Log2Intensity, fill=Subject)) +
+  geom_histogram() +
+  facet_grid(Subject~TechRep)
+```
+
+# Statistical graphics for MS
+
+## Exercise B1
+
+Cut the dendrogram for the CRC data to 4 clusters.
+
+Then create a scatter plot of the first two proteins' intensities.
+
+Use the color of the points to represent the clusters, and the shape of the points to represent diagnosis.
+
+```{r eval=FALSE}
+plot(crc, col=cutree(hc, k=4), pch=diagnosis)
+```
+
+## Exercise B2
+
+Use the k-means clustering for the CRC data with 2 clusters to do the following.
+
+Create a scatter plot of the intensities for AIAG-Bovine and FETUA-Bovine.
+
+Use the color of the points to represent the clusters, and the shape of the points to represent diagnosis.
+
+```{r eval=FALSE}
+plot(crc[,c("AIAG-Bovine", "FETUA-Bovine")], col=km$cluster, pch=diagnosis)
+```
+
+## Exercise B3
+
+Use the PCA for the CRC data to do the following.
+
+Create a scatter plot of the scores of PC2 and PC3.
+
+Use the color of the points to represent diagnosis.
+
+```{r eval=FALSE}
+plot(pc$x[,2:3], col=factor(diagnosis))
+```
+
+## Exercise B4
+
+Use the p-values from the models fit for iPRG to create a volcano plot.
+
+Color the points to indicate p-values significant at the alpha = 0.10 level.
+
+Draw dotted lines to show the alpha = 0.10 cutoff and fold changes of 1 and -1.
+
+```{r eval=FALSE}
+tests %>%
+  mutate(Significance=ifelse(adj.pvalue < 0.1, "P < .10", "P ≥ .10")) %>%
+  ggplot(aes(x=log2FC, y=-log10(adj.pvalue))) +
+  geom_point(aes(color=Significance)) +
+  geom_hline(yintercept=-log10(0.1), linetype="dotted") +
+  geom_vline(xintercept=c(-1, 1), linetype="dotted")
+```
+
+## Exercise B5
+
+Add axis labels and a title to your plot from B4.
+
+Then export it to a 750 x 500 PNG file.
+
+```{r eval=FALSE}
+tiff("ex-figure.tiff", width=750, height=500)
+tests %>%
+  mutate(Significance=ifelse(adj.pvalue < 0.1, "P < .10", "P ≥ .10")) %>%
+  ggplot(aes(x=log2FC, y=-log10(adj.pvalue))) +
+  geom_point(aes(color=Significance)) +
+  geom_hline(yintercept=-log10(0.1), linetype="dotted") +
+  geom_vline(xintercept=c(-1, 1), linetype="dotted") +
+  labs(x=expression(log[2]~fold-change),
+       y=expression(-log[10]~adjusted~p-value),
+       title="Volcano plot")
+dev.off()
+```
+
+
+
