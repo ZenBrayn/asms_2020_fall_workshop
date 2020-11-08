@@ -1,3 +1,7 @@
+# Download all Day 2 material
+
+Download from: https://www.dropbox.com/sh/781gd80wxmwgvvh/AACh6opPKVpIfIiLhw2uelX8a?dl=0
+
 # Instructions for Working with Day 2 Exercises
 
 
