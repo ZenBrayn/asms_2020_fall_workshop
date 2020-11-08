@@ -1,0 +1,614 @@
+---
+title: "Data Viz: Statistical graphics for MS"
+author: "Kylie Ariel Bemis"
+date: "11/8/2020"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data viz for mass spectrometry
+
+Understanding how to compose plots using the grammar of graphics system of `ggplot` gives you an incredibly powerful vocabulary for creating a vast array of different plots from a basic tidy data frame.
+
+Beyond the basic plots with which we're most familiar, many statistical methods for mass spectrometry require special care to visualize.
+
+We'll be going over the best ways to visualize the following common methods of analyzing MS data:
+
+- Clustering
+
+  + Hierarchical clustering
+  
+  + K-means clustering
+  
+- Dimension reduction
+
+  + Principal components analysis (PCA)
+  
+  + t-Distributed Stochastic Neighborhood Embedding (t-SNE)
+
+- Heatmaps
+
+- Visualizing statistics
+
+  + P-value distributions
+  
+  + Volcano plots
+  
+  + Venn diagrams and UpSet plots
+
+# Example data: iPRG
+
+To practice visualization in R, we will use the following Proteome Informatics Research Group (iPRG) dataset.
+
+This data is a spiked-in exeriment where 6 proteins were spiked at different ratios in a Yeast proteome background. Each run was repeated three times in a randomized order. The goal is to identify the differentially abundant spiked-in proteins.
+
+>Choi M, et al. ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC-MS/MS Experiments. J Proteome Res. 2017 Feb 3;16(2):945-957. doi: 10.1021/acs.jproteome.6b00881. PMID: 27990823.
+
+First, we read in the raw data and annotations.
+
+```{r message=FALSE}
+library(tidyverse)
+
+skydir <- "iPRG2015-Skyline"
+
+raw <- read_csv(file.path(skydir, "Choi2017_DDA_Skyline_input.csv"), na="#N/A")
+ann <- read_csv(file.path(skydir, "Choi2017_DDA_Skyline_annotation.csv"))
+```
+
+Then, we use MSstats to process the raw data.
+
+```{r eval=FALSE}
+library(MSstats)
+
+quant <- SkylinetoMSstatsFormat(raw, annotation = ann,
+                                removeProtein_with1Feature = TRUE)
+quant <- as_tibble(quant)
+quant
+
+processed.quant <- dataProcess(quant,
+                               normalization="equalizeMedians",
+                               summaryMethod="TMP",
+                               cutoffCensored="minFeature",
+                               censoredInt="0",
+                               MBimpute=TRUE,
+                               maxQuantileforCensored=0.999)
+
+saveRDS(processed.quant, file="processed-iprg.rds")
+```
+
+Having used `saveRDS()` to save the data to "processed-iprg.rds", we can now load the processed data any time we want with `readRDS()`.
+
+We do exactly that below, and then extract the run-level data.
+
+```{r}
+processed.quant <- readRDS("processed-iprg.rds")
+
+iprg <- as_tibble(processed.quant$RunlevelData)
+
+iprg
+```
+
+We further simplify the dataset to include only relevant columns.
+
+```{r}
+iprg <- transmute(iprg,
+                  Protein,
+                  Run=originalRUN,
+                  Log2Intensity=LogIntensities,
+                  Intensity=2^LogIntensities,
+                  Condition=GROUP_ORIGINAL,
+                  Subject=SUBJECT_ORIGINAL,
+                  TechRep=stringr::str_sub(originalRUN, -5, -5))
+iprg
+```
+
+The resulting data frame has 36,321 rows and 5 columns.
+
+# Example data: CRC training
+
+We will use the following colorectal cancer (CRC) dataset.
+
+This data contains quantitative information for 72 proteins, including two standard proteins, *AIAG-Bovine* and *FETUA-Bovine*, that were targeted with SRM with isotope labeled reference peptides. The goal is to identify candidate biomarkers for non-invasive detection of CRC.
+
+This training data includes 100 subjects in the control group and 100 subjects with CRC.
+
+>Surinova, S. et al. (2015) Prediction of colorectal cancer diagnosis based on circulating plasma proteins. EMBO Mol. Med., 7, 1166–1178. doi: 10.15252/emmm.201404873. PMID: 26253081.
+
+This data is available from the MSstatsBioData package.
+
+```{r}
+library(MSstatsBioData)
+data(SRM_crc_training)
+head(SRM_crc_training)
+```
+
+We use MSstats to obtain quantification data.
+
+```{r eval=FALSE}
+require(MSstats)
+
+input.proposed <- dataProcess(SRM_crc_training,
+                              normalization=FALSE,
+                              summaryMethod="TMP",
+                              cutoffCensored="minFeature", 
+                              censoredInt="0", 
+                              MBimpute=TRUE,
+                              maxQuantileforCensored=0.999)
+
+crc.quant <- quantification(input.proposed)
+
+saveRDS(crc.quant, file="processed-crc.rds")
+```
+
+Having used `saveRDS()` to save the data to "processed-crc.rds", we can now load the processed data any time we want with `readRDS()`.
+
+We do exactly that below.
+
+Then, we need to coerce the quantification data to a numeric matrix with rows as samples and columns as proteins, impute missing values, and extract the diagnosis labels.
+
+```{r}
+crc.quant <- readRDS("processed-crc.rds")
+
+crc <- t(as.matrix(crc.quant[,-1]))
+colnames(crc) <- crc.quant$Protein
+
+crc <- apply(crc, 2, function(x) ifelse(is.na(x), median(x, na.rm=TRUE), x))
+
+crc[1:5, 1:5]
+
+diagnosis <- sub("\\_.*", "", rownames(crc))
+table(diagnosis)
+```
+
+# Graphics packages and plotting in base R
+
+Many statistical packages will implement their own data visualization functions.
+
+Some of these functions will use `ggplot2`, while others will use `lattice` or the base R graphics package.
+
+Therefore, it's good to be somewhat familiar with the base R graphics plotting system, in case you use a package that requires it.
+
+## "Brush on canvas"
+
+The base R graphics system is very capable and convenient, but significantly less powerful and flexible than `ggplot2` for creating common plots.
+
+It uses a "brush on canvas" approach, where we sequentially add graphical elements to a blank canvas, building up the plot with each command.
+
+```{r}
+plot(1:10, 1:10, col="blue")
+lines(10:1, 1:10, col="red")
+abline(v=5.5, col="green", lty=2)
+```
+
+The base has its own naming scheme for adjusting different graphical parameters (or aesthetics, as `ggplot` calls them):
+
+| `ggplot2` | base |
+|-----------|------|
+| color | col |
+| fill | col |
+| shape | pch |
+| size (points/text) | cex |
+| size (lines) | lwd |
+| linetype | lty |
+
+## Recipes for common plots
+
+### Scatter plot
+
+```{r}
+iprg2 <- iprg %>%
+  select(Protein, Run, Intensity) %>%
+  pivot_wider(names_from=Run, values_from=Intensity)
+iprg2
+```
+
+```{r}
+plot(JD_06232014_sample1_C.raw ~ JD_06232014_sample1_B.raw,
+     data=iprg2, log="xy")
+```
+
+### Line plot
+
+```{r}
+set.seed(1)
+msraw <- as_tibble(Cardinal::simulateSpectrum())
+msraw
+```
+
+```{r}
+plot(intensity ~ mz, data=msraw, type='l')
+```
+
+### Box plot
+
+```{r}
+boxplot(Log2Intensity ~ Run, data=iprg)
+```
+
+### Histogram
+
+```{r}
+hist(iprg$Log2Intensity)
+```
+
+### Bar plot
+
+```{r}
+barplot(table(raw$ProductCharge))
+```
+
+# Clustering
+
+Clustering can be a useful way to visualize and explore unlabeled data.
+
+In clustering, and our goal is to find homogenous sub-groups within the data by grouping together data points based on similarity.
+
+Clustering typically needs to be performed on a matrix of numeric data:
+
+```{r}
+crc[1:5, 1:5]
+```
+
+We will also use a simpler dataset consisting of measurements on iris flowers:
+
+```{r}
+head(iris)
+
+iris_unique <- unique(iris)
+iris_matrix <- as.matrix(iris_unique[,1:4])
+```
+
+## Hierarchical Clustering
+
+Hierarchical clustering represents its clusters as a tree, or *dendrogram*. There are two main types of hierarchical clustering:
+
+- __Agglomerative__: The "bottom-up" approach, where each data point begins as its own cluster, and clusters are iteratively merged until there is only a single cluster.
+
+- __Iterations__: The "top-down" approach, where the dataset begins as a single cluster, and is iteratively split until each data point is its own cluster.
+
+Different dissimilarity measures can be used to compare data points:
+
+- Euclidean
+
+- Pearson correlation
+
+Additionally, different "linkages" define how dissimilarity is defined between clusters as a function of the pairwise dissimilarity between their data points:
+
+- Complete-linkage (maximum distance)
+
+- Single-linkage (minimum distance)
+
+- Average (average of distances)
+
+- Ward (minimize within-cluster variance)
+
+### CRC
+
+```{r}
+hc <- hclust(dist(crc), method="complete")
+
+plot(hc)
+```
+
+```{r message=FALSE}
+library(dendextend)
+
+dend <- as.dendrogram(hc)
+dend.diagnosis <- diagnosis[order.dendrogram(dend)]
+labels_colors(dend) <- c(CRC="red", Healthy="blue")[dend.diagnosis]
+
+plot(dend)
+```
+
+```{r}
+plot(crc, col=cutree(hc, k=2), pch=diagnosis)
+```
+
+### Iris
+
+```{r}
+iris_hc <- hclust(dist(iris_matrix), method="complete")
+
+dend <- as.dendrogram(iris_hc)
+dend.Species <- iris_unique$Species[order.dendrogram(dend)]
+labels(dend) <- dend.Species
+labels_colors(dend) <- c(setosa="black",
+                         versicolor="red",
+                         virginia="green")[dend.Species]
+
+plot(dend)
+```
+
+## K-means clustering
+
+K-means clustering is an iterative method that begins with a random cluster configuration, then (1) calculates the mean of each cluster, and (2) re-assigns data points to the cluster with the closest mean.
+
+This process repeats until a set number of iterations are performed, or there are no (or very little) changes between iterations.
+
+Because k-means is initialized with a random configuration, it will produce different results each time, so the random seed used to generate the clustering should be recorded for reproducibility.
+
+## CRC
+
+```{r}
+km <- kmeans(crc, centers=2)
+
+plot(crc, col=km$cluster, pch=diagnosis)
+```
+
+## Iris
+
+```{r}
+iris_km <- kmeans(iris_matrix, centers=3)
+
+plot(iris_matrix, col=iris_km$cluster, pch=as.integer(iris_unique$Species))
+```
+
+One way to try to select the number of clusters is by plotting the total within-cluster sum-of-squares for different numbers of clusters and looking for an "elbow".
+
+```{r}
+ks <- 2:10
+
+tot_within_ss <- sapply(ks, function(k) {
+    cl <- kmeans(iris_matrix, k, nstart = 10)
+    cl$tot.withinss
+})
+
+plot(ks, tot_within_ss, type = "b",
+     main = "Selection of # of clusters for iris data",
+     ylab = "Total within squared distances",
+     xlab = "Values of k tested")
+abline(v=3, col="green", lty=2)
+```
+
+
+# Dimension reduction
+
+Dimension reduction can be used as a visualization technique for high-dimensional data, or to reduce the data size for input into a machine learning algorithm.
+
+With dimension reduction, our goal is to transform the data into a small number of variables (features/dimensions) that represent as much information as in the original dataset as possible. These transformed variables and their weightings can then give insight into patterns in the data.
+
+
+
+## Principal components analysis (PCA)
+
+Principal components analysis is a classic dimension reduction method.
+
+PCA can be calculated in a number of ways, including eigendecomposition of the correlation/covariance matrix or performing SVD on the data matrix.
+
+PCA produces new *orthogonal* (non-correlated) dimensions that are linear combinations of the original data.
+
+That is, the new variables are weighted combinations of the original variables.
+
+## CRC
+
+```{r}
+pc <- prcomp(crc)
+
+summary(pc)
+
+plot(pc)
+```
+
+```{r}
+biplot(pc)
+```
+
+```{r}
+var <- pc$sdev^2
+
+pcve <- var/sum(var)
+
+cumsum(pcve)
+```
+
+```{r}
+plot(pc$x, col=factor(diagnosis))
+```
+
+## Iris
+
+```{r}
+iris_pc <- prcomp(iris_matrix)
+
+summary(iris_pc)
+
+plot(iris_pc$x, col=iris_unique$Species)
+```
+
+
+## t-Distributed Stochastic Neighborhood Embedding (t-SNE)
+
+The t-Distributed Stochastic Neighborhood Embedding algorithm is a stochastic, nonlinear dimension reduction method.
+
+It uses probability distributions to try to bring more similar data points together, while leaving dissimilar data points far apart.
+
+Because t-SNE is stochastic, it will produce different results each time, so the random seed used to generate the embedding should be recorded for reproducibility.
+
+The algorithm requires two parameters:
+
+- __Perplexity__: balances global and local aspects of the data
+
+- __Iterations__: number of iterations before the clustering is stopped
+
+## CRC
+
+```{r}
+library(Rtsne)
+
+tsne <- Rtsne(crc, perplexity=3)
+
+set.seed(1)
+plot(tsne$Y, col=factor(diagnosis))
+```
+
+## Iris
+
+```{r}
+set.seed(2)
+iris_tsne <- Rtsne(iris_matrix, perplexity=30)
+
+plot(iris_tsne$Y, col=iris_unique$Species)
+```
+
+# Heatmaps
+
+Heatmaps are a common way of visualizing matrices of expressions or intensities.
+
+They are typically accompanied by hierarchical clustering on both dimensions that serve to arrange the rows and columns based on similarity.
+
+## CRC
+
+```{r}
+heatmap(crc, RowSideColors=ifelse(diagnosis=="CRC", "red", "blue"))
+```
+
+Despite their common use, and their ability to give a high-level overview of a large dataset, there are often better visualizations that are more useful.
+
+## Iris
+
+```{r}
+heatmap(iris_matrix, labRow=iris_unique$Species)
+```
+
+# Visualizing statistics
+
+After performing statistical analysis, we will always need to visualize our results, for interpretation and presentation.
+
+First, to generate some statistical results, let's perform statistical comparison tests between all of the conditions in the iPRG dataset.
+
+Below, we set up the constrasts and then use MSstats to do the comparisons.
+
+```{r eval=FALSE}
+comparison1 <- matrix(c(-1,1,0,0),nrow=1)
+comparison2 <- matrix(c(-1,0,1,0),nrow=1)
+comparison3 <- matrix(c(-1,0,0,1),nrow=1)
+comparison4 <- matrix(c(0,-1,1,0),nrow=1)
+comparison5 <- matrix(c(0,-1,0,1),nrow=1)
+comparison6 <- matrix(c(0,0,-1,1),nrow=1)
+
+comparison <- rbind(comparison1, comparison2, comparison3,
+                    comparison4, comparison5, comparison6)
+
+rownames(comparison) <- c("C2-C1", "C3-C1", "C4-C1",
+                           "C3-C2", "C4-C2", "C4-C3")
+
+comparison.tests <- MSstats::groupComparison(contrast.matrix=comparison,
+                                         data=processed.quant)
+
+tests <- comparison.tests$ComparisonResult
+
+saveRDS(tests, file="tests-iprg.rds")
+```
+
+Having used `saveRDS()` to save the data to "tests-iprg.rds", we can now load the comparison data any time we want with `readRDS()`.
+
+We do exactly that below, and then extract the results.
+
+```{r}
+tests <- readRDS("tests-iprg.rds")
+
+tests <- as_tibble(tests)
+
+tests
+```
+
+## P-value distributions
+
+```{r}
+ggplot(tests, aes(x=pvalue)) +
+  geom_histogram(binwidth=0.01) +
+  labs(x="P-values", y="count",
+       title="P-values distribution w/ slight enrichment of small P-values") +
+  theme_minimal()
+```
+
+## Volcano plots
+
+```{r}
+tests %>%
+  mutate(Significance=ifelse(adj.pvalue < 0.05, "P < .05", "P ≥ .05")) %>%
+  ggplot(aes(x=log2FC, y=-log10(adj.pvalue))) +
+  geom_point(aes(color=Significance)) +
+  geom_hline(yintercept=-log10(0.05), linetype="dotted") +
+  geom_vline(xintercept=c(-1, 1), linetype="dotted") +
+  labs(x=expression(log[2]~fold-change),
+       y=expression(-log[10]~adjusted~p-value),
+       title="Volcano plot with reference lines") +
+  theme_minimal()
+```
+
+```{r}
+tests %>%
+  mutate(Significance=ifelse(adj.pvalue < 0.05, "P < .05", "P ≥ .05")) %>%
+  ggplot(aes(x=log2FC, y=-log10(adj.pvalue))) +
+  geom_text(data=filter(tests, adj.pvalue < .05),
+            mapping=aes(label=paste0(Protein, ":", Label))) +
+  geom_point(aes(color=Significance)) +
+  labs(x=expression(log[2]~fold-change),
+       y=expression(-log[10]~adjusted~p-value),
+       title="Volcano plot with labeled points") +
+  theme_minimal()
+```
+
+## Intersections
+
+Let's visualize which proteins were found to be significant in more than one of our comparisons.
+
+```{r}
+signif <- filter(tests, adj.pvalue < 0.05)
+signif_sets <- tapply(signif$Protein, signif$Label, as.character)
+```
+
+### Venn diagrams
+
+```{r message=FALSE, warning=FALSE}
+library(gplots)
+venn(signif_sets[1:2])
+```
+
+```{r warning=FALSE}
+venn(signif_sets[1:3])
+```
+
+```{r message=FALSE}
+library(eulerr)
+plot(euler(signif_sets[1:2]), quantities=TRUE)
+```
+
+```{r}
+plot(euler(signif_sets[1:3]), quantities=TRUE)
+```
+
+### UpSet plots
+
+```{r}
+library(UpSetR)
+
+upset(fromList(signif_sets), order.by = "freq")
+```
+
+```{r}
+upset(fromList(signif_sets), order.by = "degree")
+```
+
+```{r}
+upset(fromList(signif_sets), sets=names(signif_sets)[1:3])
+```
+
+```{r}
+upset(fromList(signif_sets),
+      sets=names(signif_sets)[1:3],
+      empty.intersections = "on")
+```
+
+# Session info
+
+```{r session-info}
+sessionInfo()
+```
