@@ -43,6 +43,15 @@ The main topics covered include:
 More information on using RStudio Cloud will be covered on Day 1 of the workshop.
 
 
+## Lecture Slides
+
+* [Day 1 Materials](https://www.dropbox.com/s/biiz5jm824b5pun/ASMS2020FallWorkshop_Day1.pdf?dl=0)
+* [Day 2 Materials](https://www.dropbox.com/sh/781gd80wxmwgvvh/AACh6opPKVpIfIiLhw2uelX8a?dl=0)
+
+
+
+
+
 
  
 
