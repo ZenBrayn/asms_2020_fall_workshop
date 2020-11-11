@@ -6,6 +6,7 @@ n_top = 3
 normalize = FALSE
 ## Reading files
 input = read.csv(file_path)
+# input = input[input$ProteinName %in% unique(input$ProteinName)[1:100], ]
 input = input[, c("ProteinName", "PeptideModifiedSequence", "PrecursorCharge",
                   "Condition", "BioReplicate", "FileName", "Area", "Truncated")]
 input$Area = ifelse(input$Truncated == "True", NA, input$Area)
@@ -64,10 +65,10 @@ proteins = unique(input$ProteinName)
 results = list()
 for (protein in proteins) {
     sub = input[input$ProteinName==protein, ]
-    run_feature = sub[, c("FileName","feature","Abundance")]
-    runs = run_feature$FileName
-    run_feature = reshape2::dcast(run_feature, FileName ~ feature,
+    run_feature = sub[, c("Run","feature","Abundance")]
+    run_feature = reshape2::dcast(run_feature, Run ~ feature,
                                   value.var = "Abundance")
+    runs = run_feature$Run
     medp = medpolish(run_feature[, -1], na.rm=TRUE,trace.iter = FALSE)
     result = data.frame(ProteinName = protein,
                         Run = runs,
@@ -75,3 +76,23 @@ for (protein in proteins) {
     results = c(results, list(result))
 }
 summarized = do.call("rbind", results)
+
+
+# loop_grow = function(x) {
+#     l = list()
+#     for (i in 1:x) {
+#         l = c(l, list(i))
+#     }
+#     l
+# }
+#
+# loop_no_grow = function(x) {
+#     l = vector("list", x)
+#     for (i in 1:x) {
+#         l[[i]] = i
+#     }
+#     l
+# }
+#
+# microbenchmark::microbenchmark(grow = loop_grow(1000),
+#                                nogrow = loop_no_grow(1000))
