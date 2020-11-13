@@ -62,7 +62,7 @@ nrow(iprg.condition1.bio1)
 
 # wide format  vs long format
 # change wide format to long format
-library(tidyr)
+library(tidyverse)
 
 ## make wide format
 ?spread
@@ -78,7 +78,6 @@ head(longiprg)
 ## add annotation in new long format
 annot <- read.csv("iPRG_example_annotation.csv")
 
-library(dplyr)
 newiprg <- left_join(longiprg, annot, by='Run')
 head(newiprg)
 ## new iprg has the same number of rows.
