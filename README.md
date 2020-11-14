@@ -49,7 +49,11 @@ More information on using RStudio Cloud will be covered on Day 1 of the workshop
 * [Day 2 Materials](https://www.dropbox.com/sh/781gd80wxmwgvvh/AACh6opPKVpIfIiLhw2uelX8a?dl=0)
 
 
+## Notes on Installing R and RStudio
 
+For the workshop, we will be using RStudio Cloud which provides a fully functioning RStudio environment from the web browser and doesn't require installing any software.  However, after the workshop, participants may want to continue practicing with course materials and exercises, which will require a local installation of R and RStudio.
+
+Please see the linked slides for information and tips on getting R and RStudio installed on your own computer: [[PDF]](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf)
 
 
 
