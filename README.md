@@ -49,15 +49,23 @@ More information on using RStudio Cloud will be covered on Day 1 of the workshop
 * [Day 2 Materials](https://www.dropbox.com/sh/781gd80wxmwgvvh/AACh6opPKVpIfIiLhw2uelX8a?dl=0)
 
 
-## Notes on Installing R and RStudio
+## Post-course Notes
+
+### Continued Use of RStudio Cloud
+
+After the course, the RStudio Cloud ASMS 2020 Fall Workshop workspace will not be available to work from.  However, you can continue to use RStudio Cloud with your own (personal) workspace as part of the RStudio Cloud free tier.  This tier allows for 15 hrs of free usage per month.
+
+You can transfer your course Projects to your personal workspace as follows:
+
+1. Visit the RStudio Cloud workspace for the course
+2. On the "Projects" view, click the "Move" icon for the project you want to keep
+3. Click "Your Workspace", then OK
+4. Repeat this for each project you want to keep
+5. To get to "Your Workspace", click the hamburger icon (three horizontal lines) in the upper left corner, and select "Your Workspace" under "Spaces".  You should see your projects now in your personal workspace.
+
+### Installing R and RStudio on Your Own Computer
 
 For the workshop, we will be using RStudio Cloud which provides a fully functioning RStudio environment from the web browser and doesn't require installing any software.  However, after the workshop, participants may want to continue practicing with course materials and exercises, which will require a local installation of R and RStudio.
 
 Please see the linked slides for information and tips on getting R and RStudio installed on your own computer: [[PDF]](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf)
-
-
-
- 
-
-
 
