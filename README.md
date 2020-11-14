@@ -47,6 +47,7 @@ More information on using RStudio Cloud will be covered on Day 1 of the workshop
 
 * [Day 1 Materials](https://www.dropbox.com/s/biiz5jm824b5pun/ASMS2020FallWorkshop_Day1.pdf?dl=0)
 * [Day 2 Materials](https://www.dropbox.com/sh/781gd80wxmwgvvh/AACh6opPKVpIfIiLhw2uelX8a?dl=0)
+* [Day 4 Cardinal Materials](https://www.dropbox.com/sh/n5ivf8cnqakycz9/AABX5wMHiJXz4NpJkmYY_Je3a?dl=0) 
 
 
 ## Post-course Notes
