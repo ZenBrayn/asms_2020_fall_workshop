@@ -1,29 +1,35 @@
+##############################
+##############################
+## ASMS Fall workshop 2020 - Day 4: Cardinal for mass spectrometry imaging analysis
+## Created by Melanie Foell
+##############################
+##############################
+
 
 #### Part I exploring data ####
+###############################
 
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
+## outside RstudioCloud: install Cardinalworkflows
 
-BiocManager::install("CardinalWorkflows")
+# install.packages("BiocManager")
+# BiocManager::install("CardinalWorkflows")
 
 library(CardinalWorkflows)
 
 data("pig206", package="CardinalWorkflows")
 
-rm(pig206.peaklist)
-rm(pig206.peaks)
-gc()
-
 pig206
 
-pig206 = as(pig206, 'MSImagingExperiment')
+# convert to new object class
+pig206 <- as(pig206, 'MSImagingExperiment')
 
 pig206
-## Question 1
 
 writeImzML(pig206, "pig206")
 
-# m/z 
+pig <- readImzML("pig206")
+
+# exploring m/z dimension
 featureData(pig206)
 fData(pig206)
 mz(pig206)
@@ -31,16 +37,15 @@ class(mz(pig206))
 length(mz(pig206))
 range(mz(pig206))
 
-# pixels/spectra
+# exploring pixels/spectra
 pixelData(pig206)
 pData(pig206)
 head(run(pig206))
 head(coord(pig206))
 
-# intensities
+# exploring intensities
 imageData(pig206)
 iData(pig206)[1:15,1:15]
-## Question 2
 
 # visualizations
 
@@ -55,19 +60,18 @@ abline(v=227.5, col="orange")
 image(pig206, mz=221.5, plusminus=0.2)
 image(pig206, mz=227.5, plusminus = 0.2)
 
-## Question 3
-
 # special ion images
 
 pig206_tic = summarizePixels(pig206, "sum")
 image(pig206_tic)
 
-# special spectra
+# special spectra plots
 
 pig206_mean = summarizeFeatures(pig206, "mean")
 plot(pig206_mean)
 
-#### Part II: pre-processing #### 
+#### Part II: pre-processing ####
+#################################
 
 # generation of mz peak list
 
@@ -85,16 +89,15 @@ pig206_normalized <- normalize(pig206, method = "rms")
 pig206_normalized <- process(pig206_normalized)
 
 # peak integration
-
 pig206_peaks <- peakBin(pig206_normalized, ref=mz(pig206_ref), tolerance = 0.5, units = "mz")
 pig206_peaks <- process(pig206_peaks)
 
 pig206_peaks
 plot(pig206_peaks)
 
-# Question 4
 
 #### PART III: segmentation ####
+################################
 
 set.seed(1)
 pig206_ssc <- spatialShrunkenCentroids(pig206_peaks, method="adaptive", r=2, 
@@ -112,10 +115,3 @@ plot(pig206_ssc, model=list(s=20), values="statistic", lwd=2)
 # heart
 topFeatures(pig206_ssc, model=list(s=20), class==6)
 image(pig206, mz=187.3, plusminus=0.2)
-
-## Question 5
-
-
-
-
-
