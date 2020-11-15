@@ -62,12 +62,12 @@ image(pig206, mz=227.5, plusminus = 0.2)
 
 # special ion images
 
-pig206_tic = summarizePixels(pig206, "sum")
+pig206_tic <- summarizePixels(pig206, "sum")
 image(pig206_tic)
 
 # special spectra plots
 
-pig206_mean = summarizeFeatures(pig206, "mean")
+pig206_mean <- summarizeFeatures(pig206, "mean")
 plot(pig206_mean)
 
 #### Part II: pre-processing ####
