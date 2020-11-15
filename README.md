@@ -48,6 +48,7 @@ More information on using RStudio Cloud will be covered on Day 1 of the workshop
 * [Day 1 - Intro to R](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day1-benz-introToR.pdf)
 * [Day 2 - Data Visualization](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day2-bemis-dataViz.pdf)
 * [Day 3 - Intro Stats](https://www.dropbox.com/s/uo37ga15maqml1b/Day3-vitek-introStat.pdf?dl=0)
+* [Day 4 - MSstats](https://www.dropbox.com/s/po2iscdm2xw7z7u/Day4-vitek-MSstats.pdf?dl=0)
 * [Day 4 - Cardinal](https://www.dropbox.com/sh/n5ivf8cnqakycz9/AABX5wMHiJXz4NpJkmYY_Je3a?dl=0) 
 
 
