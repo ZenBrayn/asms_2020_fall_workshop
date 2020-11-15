@@ -70,5 +70,5 @@ You can transfer your course Projects to your personal workspace as follows:
 
 For the workshop, we will be using RStudio Cloud which provides a fully functioning RStudio environment from the web browser and doesn't require installing any software.  However, after the workshop, participants may want to continue practicing with course materials and exercises, which will require a local installation of R and RStudio.
 
-Please see the linked slides for information and tips on getting R and RStudio installed on your own computer: [[PDF]](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf)
+Please see the [linked slides](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf) for information and tips on getting R and RStudio installed on your own computer: [[PDF]](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf)
 
