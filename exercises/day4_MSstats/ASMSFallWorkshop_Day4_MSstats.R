@@ -20,7 +20,7 @@ getwd()
 
 # step 2: read MSstats report and annotation
 # Read output from skyline 
-raw.skyline <- read.csv(file="Choi2017_DDA_Skyline_input.csv")
+raw.skyline <- read.csv(file="iPRG2015-Skyline/Choi2017_DDA_Skyline_input.csv")
 
 # Check the first 6 rows of dataset
 head(raw.skyline)
@@ -42,7 +42,7 @@ xtabs(~Truncated, raw.skyline)
 sum(raw.skyline$Truncated == 'True')
 
 ## read annotation file
-annot.skyline <- read.csv(file="Choi2017_DDA_Skyline_annotation.csv")
+annot.skyline <- read.csv(file="iPRG2015-Skyline/Choi2017_DDA_Skyline_annotation.csv")
 annot.skyline
 ## This annotation file should be prepared by user.
 ## 'Run' column should have the same information as 'FileName' in MSstats report.
@@ -112,10 +112,10 @@ dataProcessPlots(data = quant.skyline,
 
 # if you have many MS runs, adjust width of plot (makd wider)
 # Profile plot for the data with equalized median method
-dataProcessPlots(data = quant.skyline, 
-                 type="Profileplot", 
-                 width=7, height=7,
-                 address="output/ABRF_skyline_equalizeNorm_")
+# dataProcessPlots(data = quant.skyline, 
+#                  type="Profileplot", 
+#                  width=7, height=7,
+#                  address="output/ABRF_skyline_equalizeNorm_")
 
 dataProcessPlots(data = quant.skyline, 
                  type="Profileplot", 
@@ -132,10 +132,10 @@ dataProcessPlots(data = quant.skyline,
                  address="output/ABRF_skyline_equalizeNorm_P55249_")
 
 # not run
-dataProcessPlots(data = quant.skyline, 
-                 type="conditionplot", 
-                 width=7, height=7,
-                 address="outpute/ABRF_skyline_equalizeNorm_")
+# dataProcessPlots(data = quant.skyline, 
+#                  type="conditionplot", 
+#                  width=7, height=7,
+#                  address="outpute/ABRF_skyline_equalizeNorm_")
 
 dataProcessPlots(data = quant.skyline, 
                  type="conditionplot", 

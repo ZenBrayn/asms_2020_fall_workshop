@@ -7,13 +7,13 @@
 library(MSstats)
 
 # First, get protein ID information
-proteinGroups <- read.table("Choi2017_DDA_MaxQuant_proteinGroups.txt", sep = "\t", header = TRUE)
+proteinGroups <- read.table("iPRG2015_MaxQuant/Choi2017_DDA_MaxQuant_proteinGroups.txt", sep = "\t", header = TRUE)
 
 # Read in MaxQuant file: evidence.txt
-evi <- read.table("Choi2017_DDA_MaxQuant_evidence.txt", sep="\t", header=TRUE)
+evi <- read.table("iPRG2015_MaxQuant/Choi2017_DDA_MaxQuant_evidence.txt", sep="\t", header=TRUE)
 
 # Read in annotation including condition and biological replicates: annotation.csv
-annot.maxquant <- read.csv("Choi2017_DDA_MaxQuant_annotation.csv", header = TRUE)
+annot.maxquant <- read.csv("iPRG2015_MaxQuant/Choi2017_DDA_MaxQuant_annotation.csv", header = TRUE)
 annot.maxquant
 
 ?MaxQtoMSstatsFormat
@@ -77,7 +77,7 @@ unique(quant.maxquant$ProcessedData$GROUP_ORIGINAL)
 comparison1 <-matrix(c(-1,1,0,0),nrow=1)
 comparison2 <-matrix(c(0,-1,1,0),nrow=1)
 comparison3 <-matrix(c(0,0,-1,1),nrow=1)
-comparison < -rbind(comparison1,  comparison2, comparison3)
+comparison <- rbind(comparison1,  comparison2, comparison3)
 row.names(comparison)<-c("C2-C1", "C3-C2", "C4-C3")
 
 comparison
