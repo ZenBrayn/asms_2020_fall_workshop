@@ -76,6 +76,7 @@ Please see the [linked slides](https://github.com/ZenBrayn/asms_2020_fall_worksh
 
 The examples and exercises covered in the workshop are located in this GitHub repository under the `exercises` directory.  Please see the instructions provided in each *day* sub-folder. Please note:
 
+* You can download all of the files in this repository, including the exercise files, by clicking the green "Code" button (main repository page, toward the top), then select "Download ZIP".
 * Some of the exercises require copying and unzipping data provided in this repository under the `data` directory
 * Each *day* directory is organized as an RStudio project.  Once you have R and RStudio install on your computer, you can double click the .Rproj file in each directory to load the project and start working.
 
