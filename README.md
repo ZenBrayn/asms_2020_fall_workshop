@@ -47,9 +47,9 @@ More information on using RStudio Cloud will be covered on Day 1 of the workshop
 
 * [Day 1 - Intro to R](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day1-benz-introToR.pdf)
 * [Day 2 - Data Visualization](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day2-bemis-dataViz.pdf)
-* [Day 3 - Intro Stats](https://www.dropbox.com/s/uo37ga15maqml1b/Day3-vitek-introStat.pdf?dl=0)
-* [Day 4 - MSstats](https://www.dropbox.com/s/po2iscdm2xw7z7u/Day4-vitek-MSstats.pdf?dl=0)
-* [Day 4 - Cardinal](https://www.dropbox.com/sh/n5ivf8cnqakycz9/AABX5wMHiJXz4NpJkmYY_Je3a?dl=0) 
+* [Day 3 - Intro Stats](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day3-vitek-introStat.pdf)
+* [Day 4 - MSstats](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day4-vitek-MSstats.pdf)
+* [Day 4 - Cardinal](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/Day4-foll-cardinal.pdf) 
 
 
 ## Post-course Notes
@@ -71,4 +71,11 @@ You can transfer your course Projects to your personal workspace as follows:
 For the workshop, we will be using RStudio Cloud which provides a fully functioning RStudio environment from the web browser and doesn't require installing any software.  However, after the workshop, participants may want to continue practicing with course materials and exercises, which will require a local installation of R and RStudio.
 
 Please see the [linked slides](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf) for information and tips on getting R and RStudio installed on your own computer: [[PDF]](https://github.com/ZenBrayn/asms_2020_fall_workshop/blob/main/presentations/installing_r_and_rstudio.pdf)
+
+### Working with the Examples and Exercises on Your Own Computer
+
+The examples and exercises covered in the workshop are located in this GitHub repository under the `exercises` directory.  Please see the instructions provided in each *day* sub-folder. Please note:
+
+* Some of the exercises require copying and unzipping data provided in this repository under the `data` directory
+* Each *day* directory is organized as an RStudio project.  Once you have R and RStudio install on your computer, you can double click the .Rproj file in each directory to load the project and start working.
 
